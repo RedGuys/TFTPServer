@@ -1,7 +1,5 @@
 package ru.redguy.tftpserver.datasource;
 
-import ru.redguy.tftpserver.IDataSource;
-
 import java.io.File;
 import java.nio.file.Path;
 
