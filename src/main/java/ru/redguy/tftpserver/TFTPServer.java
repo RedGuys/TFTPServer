@@ -14,14 +14,18 @@ public class TFTPServer {
     private ErrorEvent errorEvent;
 
     public void start() throws SocketException {
-        start(69);
+        start(69,true);
     }
 
     public void start(int port) throws SocketException {
+        start(port,true);
+    }
+
+    public void start(int port, boolean isDaemon) throws SocketException {
         socket = new DatagramSocket(port);
         runner = new Runner(socket, this);
         thread = new Thread(runner);
-        thread.setDaemon(true);
+        thread.setDaemon(isDaemon);
         thread.start();
     }
 
