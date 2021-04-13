@@ -1,7 +1,10 @@
 package ru.redguy.tftpserver;
 
+import ru.redguy.tftpserver.datasource.IDataSource;
+
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketTimeoutException;
@@ -12,16 +15,17 @@ class TFTPserverWRQ extends Thread {
     protected DatagramSocket sock;
     protected InetAddress host;
     protected int port;
-    protected FileOutputStream outFile;
+    protected OutputStream outFile;
     protected TFTPpacket req;
     protected int timeoutLimit = 5;
     //protected int testloss=0;
-    protected File saveFile;
     protected String fileName;
+    protected IDataSource dataSource;
 
     // Initialize read request
-    public TFTPserverWRQ(TFTPwrite request, ErrorEvent event) throws TftpException {
+    public TFTPserverWRQ(TFTPwrite request, ErrorEvent event, IDataSource dataSource) throws TftpException {
         try {
+            this.dataSource = dataSource;
             req = request;
             sock = new DatagramSocket(); // new port for transfer
             sock.setSoTimeout(1000);
@@ -29,11 +33,9 @@ class TFTPserverWRQ extends Thread {
             host = request.getAddress();
             port = request.getPort();
             fileName = request.fileName();
-            //create file object in parent folder
-            saveFile = new File(fileName);
 
-            if (!saveFile.exists()) {
-                outFile = new FileOutputStream(saveFile);
+            if (!dataSource.isFileExists(fileName)) {
+                outFile = dataSource.getOutputStream(fileName);
                 TFTPack a = new TFTPack(0);
                 a.send(host, port, sock); // send ack 0 at first, ready to
                 // receive
@@ -104,7 +106,7 @@ class TFTPserverWRQ extends Thread {
                 }
 
                 System.out.println("Client failed:  " + e.getMessage());
-                saveFile.delete();
+                dataSource.delete(fileName);
             }
         }
     }

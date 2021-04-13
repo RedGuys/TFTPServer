@@ -1,7 +1,11 @@
 package ru.redguy.tftpserver;
 
+import ru.redguy.tftpserver.datasource.IDataSource;
+
+import javax.sql.DataSource;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.InputStream;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketTimeoutException;
@@ -12,14 +16,16 @@ class TFTPserverRRQ extends Thread {
     protected DatagramSocket sock;
     protected InetAddress host;
     protected int port;
-    protected FileInputStream source;
+    protected InputStream source;
     protected TFTPpacket req;
     protected int timeoutLimit = 5;
     protected String fileName;
+    protected IDataSource dataSource;
 
     // initialize read request
-    public TFTPserverRRQ(TFTPread request, ErrorEvent event) throws TftpException {
+    public TFTPserverRRQ(TFTPread request, ErrorEvent event, IDataSource dataSource) throws TftpException {
         try {
+            this.dataSource = dataSource;
             req = request;
             //open new socket with random port num for tranfer
             sock = new DatagramSocket();
@@ -29,12 +35,9 @@ class TFTPserverRRQ extends Thread {
             host = request.getAddress();
             port = request.getPort();
 
-            //create file object in parent folder
-            File srcFile = new File(fileName);
-            /*System.out.println("procce checking");*/
             //check file
-            if (srcFile.exists() && srcFile.isFile() && srcFile.canRead()) {
-                source = new FileInputStream(srcFile);
+            if (dataSource.isFileExists(fileName) && dataSource.isFile(fileName) && dataSource.isCanRead(fileName)) {
+                source = dataSource.getInputStream(fileName);
                 this.start(); //open new thread for transfer
             } else
                 throw new TftpException("access violation");
