@@ -2,6 +2,7 @@ import ru.redguy.tftpserver.ErrorEvent;
 import ru.redguy.tftpserver.TFTPServer;
 import ru.redguy.tftpserver.TFTPread;
 import ru.redguy.tftpserver.TFTPwrite;
+import ru.redguy.tftpserver.datasource.FileSystem;
 
 import java.net.SocketException;
 
@@ -9,7 +10,7 @@ public class Main {
     public static void main(String[] args) {
         TFTPServer tftpServer = new TFTPServer();
         try {
-            tftpServer.start(1000);
+            tftpServer.start(1000,false,new FileSystem("gradle"));
         } catch (SocketException e) {
             e.printStackTrace();
         }

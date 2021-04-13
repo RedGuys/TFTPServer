@@ -1,8 +1,6 @@
 package ru.redguy.tftpserver;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -145,7 +143,7 @@ final class TFTPdata extends TFTPpacket {
     protected TFTPdata() {
     }
 
-    public TFTPdata(int blockNumber, FileInputStream in) throws IOException {
+    public TFTPdata(int blockNumber, InputStream in) throws IOException {
         this.message = new byte[maxTftpPakLen];
         // manipulate message
         this.put(opOffset, tftpDATA);
@@ -167,7 +165,7 @@ final class TFTPdata extends TFTPpacket {
      */
 
     // File output
-    public int write(FileOutputStream out) throws IOException {
+    public int write(OutputStream out) throws IOException {
         out.write(message, dataOffset, length - 4);
 
         return (length - 4);
@@ -186,6 +184,7 @@ class TFTPerror extends TFTPpacket {
 
     //Generate error packet
     public TFTPerror(int number, String message) {
+        if(message == null) message = "Error";
         length = 4 + message.length() + 1;
         this.message = new byte[length];
         put(opOffset, tftpERROR);

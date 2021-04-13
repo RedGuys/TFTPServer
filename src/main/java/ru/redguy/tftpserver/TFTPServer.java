@@ -1,5 +1,8 @@
 package ru.redguy.tftpserver;
 
+import ru.redguy.tftpserver.datasource.FileSystem;
+import ru.redguy.tftpserver.datasource.IDataSource;
+
 import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -12,6 +15,7 @@ public class TFTPServer {
     private Runner runner;
     private Thread thread;
     private ErrorEvent errorEvent;
+    private IDataSource dataSource;
 
     public void start() throws SocketException {
         start(69,true);
@@ -22,6 +26,11 @@ public class TFTPServer {
     }
 
     public void start(int port, boolean isDaemon) throws SocketException {
+        start(port, isDaemon, new FileSystem("."));
+    }
+
+    public void start(int port, boolean isDaemon, IDataSource dataSource) throws SocketException {
+        this.dataSource = dataSource;
         socket = new DatagramSocket(port);
         runner = new Runner(socket, this);
         thread = new Thread(runner);
@@ -30,6 +39,11 @@ public class TFTPServer {
     }
 
     public void start(String host, int port) throws UnknownHostException, SocketException {
+        start(host, port, new FileSystem("."));
+    }
+
+    public void start(String host, int port, IDataSource dataSource) throws UnknownHostException, SocketException {
+        this.dataSource = dataSource;
         socket = new DatagramSocket(port, InetAddress.getByName(host));
         runner = new Runner(socket, this);
         thread.setDaemon(true);
@@ -75,13 +89,13 @@ public class TFTPServer {
 
                 if (in instanceof TFTPread) {
                     try {
-                        TFTPserverRRQ r = new TFTPserverRRQ((TFTPread) in, server.errorEvent);
+                        TFTPserverRRQ r = new TFTPserverRRQ((TFTPread) in, server.errorEvent, server.dataSource);
                     } catch (TftpException e) {
                         server.errorEvent.onPacketReadException(e);
                     }
                 } else if (in instanceof TFTPwrite) {
                     try {
-                        TFTPserverWRQ w = new TFTPserverWRQ((TFTPwrite) in, server.errorEvent);
+                        TFTPserverWRQ w = new TFTPserverWRQ((TFTPwrite) in, server.errorEvent, server.dataSource);
                     } catch (TftpException e) {
                         server.errorEvent.onPacketWriteException(e);
                     }
